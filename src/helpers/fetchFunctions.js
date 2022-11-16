@@ -11,5 +11,3 @@ export const fetchProductsList = async (endpoint) => {
   const { results } = data;
   return results;
 };
-
-console.log(fetchProduct());
