@@ -1,9 +1,11 @@
 import { searchCep } from './helpers/cepFunctions';
 import './style.css';
-import { createProductElement } from './helpers/shopFunctions';
-import { fetchProductsList } from './helpers/fetchFunctions';
+import { createCartProductElement, createProductElement } from './helpers/shopFunctions';
+import { fetchProduct, fetchProductsList } from './helpers/fetchFunctions';
+import { getSavedCartIDs } from './helpers/cartFunctions';
 
 const sectionProducts = document.querySelector('.products');
+const cartProducts = document.querySelector('.cart__products');
 
 const isLoading = () => {
   const loading = document.createElement('div');
@@ -19,7 +21,7 @@ const errorElement = () => {
   return error;
 };
 
-const AppendElements = async () => {
+const appendElements = async () => {
   const loader = isLoading();
   sectionProducts.appendChild(loader);
   try {
@@ -30,12 +32,25 @@ const AppendElements = async () => {
       sectionProducts.appendChild(productElement);
     });
   } catch (error) {
-    console.log(error);
     sectionProducts.removeChild(loader);
     sectionProducts.appendChild(errorElement());
   }
 };
 
-AppendElements();
+appendElements();
+
+const listProductsOnCart = () => {
+  const cartProductsID = getSavedCartIDs();
+
+  cartProductsID.forEach(async (productID) => {
+    const data = await fetchProduct(productID);
+    const cartElement = createCartProductElement(data);
+    cartProducts.appendChild(cartElement);
+  });
+};
+
+window.onload = () => {
+  listProductsOnCart();
+};
 
 document.querySelector('.cep-button').addEventListener('click', searchCep);

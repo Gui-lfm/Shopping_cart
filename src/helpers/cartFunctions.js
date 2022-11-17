@@ -13,7 +13,6 @@ export const getSavedCartIDs = () => {
  */
 export const saveCartID = (id) => {
   if (!id) throw new Error('Você deve fornecer um ID');
-
   const cartProducts = getSavedCartIDs();
   const newCartProducts = [...cartProducts, id];
   localStorage.setItem('cartProducts', JSON.stringify(newCartProducts));
