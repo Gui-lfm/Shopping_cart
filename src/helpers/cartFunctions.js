@@ -29,3 +29,22 @@ export const removeCartID = (id) => {
   const newCartProducts = cartProducts.filter((product) => product !== id);
   localStorage.setItem('cartProducts', JSON.stringify(newCartProducts));
 };
+
+// salvando preços no localStorage:
+
+export const getSavedPrices = () => {
+  const cartPrices = localStorage.getItem('cartPrices');
+  return cartPrices ? JSON.parse(cartPrices) : [];
+};
+
+export const saveCartPrice = (price) => {
+  const cartPrices = getSavedPrices();
+  const newCartPrices = [...cartPrices, price];
+  localStorage.setItem('cartPrices', JSON.stringify(newCartPrices));
+};
+
+export const removeCartPrice = (price) => {
+  const cartPrices = getSavedPrices();
+  const newCartPrices = cartPrices.filter((product) => product !== price);
+  localStorage.setItem('cartPrices', JSON.stringify(newCartPrices));
+};

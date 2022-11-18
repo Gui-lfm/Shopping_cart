@@ -1,13 +1,24 @@
-import { removeCartID, saveCartID } from './cartFunctions';
+import {
+  getSavedPrices,
+  removeCartID,
+  removeCartPrice,
+  saveCartID,
+  saveCartPrice } from './cartFunctions';
 import { fetchProduct } from './fetchFunctions';
 
 const cartProducts = document.querySelector('.cart__products');
+const totalPrice = document.querySelector('.total-price');
 
-/**
- * Função responsável por criar e retornar o elemento de imagem do produto.
- * @param {string} imageSource - URL da imagem.
- * @returns {Element} Elemento de imagem do produto.
- */
+export const calculatePrice = () => {
+  const prices = getSavedPrices();
+  if (prices.length === 0) {
+    totalPrice.innerHTML = 0;
+  } else {
+    const total = prices.reduce((acc, curr) => acc + curr);
+    totalPrice.innerHTML = total;
+  }
+};
+
 const createProductImageElement = (imageSource) => {
   const img = document.createElement('img');
   img.className = 'product__image';
@@ -15,13 +26,6 @@ const createProductImageElement = (imageSource) => {
   return img;
 };
 
-/**
- * Função responsável por criar e retornar qualquer elemento.
- * @param {string} element - Nome do elemento a ser criado.
- * @param {string} className - Classe do elemento.
- * @param {string} innerText - Texto do elemento.
- * @returns {Element} Elemento criado.
- */
 export const createCustomElement = (element, className, innerText = '') => {
   const e = document.createElement(element);
   e.className = className;
@@ -29,34 +33,16 @@ export const createCustomElement = (element, className, innerText = '') => {
   return e;
 };
 
-/**
- * Função que recupera o ID do produto passado como parâmetro.
- * @param {Element} product - Elemento do produto.
- * @returns {string} ID do produto.
- */
 export const getIdFromProduct = (product) => (
   product.querySelector('span.product__id').innerText
 );
 
-/**
- * Função que remove o produto do carrinho.
- * @param {Element} li - Elemento do produto a ser removido do carrinho.
- * @param {string} id - ID do produto a ser removido do carrinho.
- */
-const removeCartProduct = (li, id) => {
+const removeCartProduct = (li, id, price) => {
   li.remove();
   removeCartID(id);
+  removeCartPrice(price);
 };
 
-/**
- * Função responsável por criar e retornar um product do carrinho.
- * @param {Object} product - Objeto do produto.
- * @param {string} product.id - ID do produto.
- * @param {string} product.title - Título do produto.
- * @param {string} product.price - Preço do produto.
- * @param {string} product.pictures - Imagens do produto.
- * @returns {Element} Elemento de um product do carrinho.
- */
 export const createCartProductElement = ({ id, title, price, pictures }) => {
   const li = document.createElement('li');
   li.className = 'cart__product';
@@ -85,19 +71,23 @@ export const createCartProductElement = ({ id, title, price, pictures }) => {
   );
   li.appendChild(removeButton);
 
-  li.addEventListener('click', () => removeCartProduct(li, id));
+  li.addEventListener('click', () => {
+    removeCartProduct(li, id, price);
+    calculatePrice();
+  });
   return li;
 };
 
-/**
- * Função responsável por criar e retornar o elemento do produto.
- * @param {Object} product - Objeto do produto.
- * @param {string} product.id - ID do produto.
- * @param {string} product.title - Título do produto.
- * @param {string} product.thumbnail - URL da imagem do produto.
- * @param {number} product.price - Preço do produto.
- * @returns {Element} Elemento de produto.
- */
+const addToCart = async (productId) => {
+  saveCartID(productId);
+  const data = await fetchProduct(productId);
+  const { price: currentPrice } = data;
+  saveCartPrice(currentPrice);
+  calculatePrice();
+  const cartElement = createCartProductElement(data);
+  cartProducts.appendChild(cartElement);
+};
+
 export const createProductElement = ({ id, title, thumbnail, price }) => {
   const section = document.createElement('section');
   section.className = 'product';
@@ -123,12 +113,9 @@ export const createProductElement = ({ id, title, thumbnail, price }) => {
 
   section.appendChild(cartButton);
 
-  cartButton.addEventListener('click', async () => {
+  cartButton.addEventListener('click', () => {
     const ProductId = productId.innerHTML;
-    saveCartID(ProductId);
-    const data = await fetchProduct(ProductId);
-    const cartElement = createCartProductElement(data);
-    cartProducts.appendChild(cartElement);
+    addToCart(ProductId);
   });
 
   return section;
